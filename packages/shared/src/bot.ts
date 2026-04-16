@@ -8,6 +8,8 @@ export interface ConversationState {
   tags: string[];
   candidatePropertyIds?: number[];
   selectedPropertyId?: number | null;
+  leadCreated?: boolean;
+  leadId?: string | null;
 }
 
 export interface NextQuestionResult {

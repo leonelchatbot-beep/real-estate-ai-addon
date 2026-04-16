@@ -21,6 +21,8 @@ export async function createSession(input: Record<string, unknown>) {
       tags: ['webchat'],
       candidatePropertyIds: [],
       selectedPropertyId: null,
+      leadCreated: false,
+      leadId: null,
     },
     followUpStatus: 'none',
     lastInboundAt: undefined,

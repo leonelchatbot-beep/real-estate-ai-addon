@@ -8,7 +8,9 @@ import {
   updateConversationState,
 } from '../modules/conversations/service.js';
 import { maybeBuildPropertySuggestion } from '../modules/bot/propertyFlow.js';
+import { detectSelectedPropertyId } from '../modules/bot/selection.js';
 import { evaluateConversation, evolveConversationState } from '../modules/bot/service.js';
+import { maybeCreateLeadFromConversation } from '../modules/leads/trigger.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
 
 export async function webchatRoutes(app: FastifyInstance) {
@@ -47,6 +49,14 @@ export async function webchatRoutes(app: FastifyInstance) {
 
       const stored = await createMessage({ ...payload, sessionId } as unknown as Record<string, unknown>);
       let nextState = evolveConversationState(existingSession.state, payload.message);
+      const detectedSelection = detectSelectedPropertyId(nextState, payload.message);
+      if (detectedSelection) {
+        nextState = {
+          ...nextState,
+          selectedPropertyId: detectedSelection,
+        };
+      }
+
       const suggestion = await maybeBuildPropertySuggestion(nextState);
 
       if (suggestion) {
@@ -56,9 +66,27 @@ export async function webchatRoutes(app: FastifyInstance) {
         };
       }
 
+      let leadResult = null;
+      if (nextState.selectedPropertyId) {
+        leadResult = await maybeCreateLeadFromConversation({
+          state: nextState,
+          sessionId,
+        });
+
+        if (leadResult?.leadId) {
+          nextState = {
+            ...nextState,
+            leadCreated: true,
+            leadId: leadResult.leadId,
+          };
+        }
+      }
+
       updateConversationState(sessionId, nextState);
       const evaluation = evaluateConversation(nextState);
-      const finalReply = suggestion?.reply ?? evaluation.replyPreview;
+      const finalReply = leadResult?.leadId
+        ? 'Perfecto. Ya tomé tu consulta sobre esa propiedad y un asesor se va a contactar con vos a la brevedad.'
+        : suggestion?.reply ?? evaluation.replyPreview;
       await appendBotReply(sessionId, finalReply);
 
       return {
@@ -72,6 +100,9 @@ export async function webchatRoutes(app: FastifyInstance) {
         qualifiesForLead: evaluation.qualifiesForLead,
         collectedData: nextState.collectedData,
         candidatePropertyIds: nextState.candidatePropertyIds ?? [],
+        selectedPropertyId: nextState.selectedPropertyId ?? null,
+        leadCreated: nextState.leadCreated ?? false,
+        leadId: nextState.leadId ?? null,
       };
     } catch (error) {
       return reply.code(400).send({ ok: false, error: (error as Error).message });
