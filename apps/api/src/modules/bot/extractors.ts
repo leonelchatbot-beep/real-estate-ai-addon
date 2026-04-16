@@ -1,4 +1,5 @@
 import type { IntentType, RequiredQuestionKey } from '@reaa/shared';
+import { parseAffirmative } from './parsers.js';
 import { normalizeName, normalizePhone, normalizeZone } from './normalizers.js';
 
 function tryExtractByQuestion(question: RequiredQuestionKey | null, message: string): Record<string, unknown> {
@@ -21,7 +22,7 @@ function tryExtractByQuestion(question: RequiredQuestionKey | null, message: str
     case 'income_requirements':
       return { income_requirements: message.trim() };
     case 'pets':
-      return { pets: message.trim() };
+      return { pets: parseAffirmative(message) ? 'sí' : message.trim() };
     case 'commercial_use':
       return { commercial_use: message.trim() };
     case 'dates':
@@ -29,7 +30,7 @@ function tryExtractByQuestion(question: RequiredQuestionKey | null, message: str
     case 'address':
       return { address: message.trim() };
     case 'has_deed':
-      return { has_deed: message.trim() };
+      return { has_deed: parseAffirmative(message) ? 'sí' : message.trim() };
     case 'property_age':
       return { property_age: message.trim() };
     case 'rooms':
@@ -75,6 +76,8 @@ export function extractStructuredData(intent: IntentType, message: string, curre
 
   if (text.includes('mascota') || text.includes('perro') || text.includes('gato')) result.pets = 'sí';
   if (text.includes('escritura')) result.has_deed = 'sí';
+  if (parseAffirmative(message) && currentQuestion === 'has_deed') result.has_deed = 'sí';
+  if (parseAffirmative(message) && currentQuestion === 'pets') result.pets = 'sí';
 
   return result;
 }
