@@ -21,6 +21,10 @@ export function buildNaturalReply(params: {
     }
   }
 
+  if (state.selectedPropertyId && !state.leadCreated && !state.collectedData.phone) {
+    return 'Perfecto. Para que un asesor pueda seguir con esa propiedad, ¿me pasás un teléfono de contacto?';
+  }
+
   if (suggestionReply) {
     return suggestionReply;
   }

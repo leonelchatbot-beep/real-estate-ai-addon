@@ -35,7 +35,7 @@ export function buildIntentDetectedMessage(intent: IntentType) {
 export function buildQuestionCopy(question: RequiredQuestionKey): string {
   const map: Record<RequiredQuestionKey, string> = {
     name: '¿Con quién tengo el gusto?',
-    phone: '¿Me pasás un teléfono de contacto por si un asesor tiene que seguir con vos?',
+    phone: '¿Me pasás un teléfono de contacto así un asesor puede seguir con vos por esa propiedad?',
     zone: '¿Por qué zona estás buscando?',
     people_or_rooms: '¿Cuántos ambientes o dormitorios estás buscando?',
     budget: '¿Hasta cuánto de presupuesto estás manejando?',

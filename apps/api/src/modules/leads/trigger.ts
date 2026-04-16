@@ -1,11 +1,10 @@
 import type { ConversationState, CreateLeadInput } from '@reaa/shared';
 import { createLead } from './service.js';
+import { shouldCreateLeadNow } from './rules.js';
+import { buildLeadSummary } from './summary.js';
 
 export function canCreateLead(state: ConversationState) {
-  if (state.leadCreated) return false;
-  if (!state.selectedPropertyId) return false;
-  if (!['buy', 'rent_residential', 'rent_commercial', 'ask_price'].includes(state.intent)) return false;
-  return true;
+  return shouldCreateLeadNow(state);
 }
 
 export async function maybeCreateLeadFromConversation(params: {
@@ -28,7 +27,7 @@ export async function maybeCreateLeadFromConversation(params: {
     source: state.channel,
     channel: state.channel as CreateLeadInput['channel'],
     leadType: state.intent,
-    conversationSummary: buildConversationSummary(state),
+    conversationSummary: buildLeadSummary(state),
     humanHandoffRequested: true,
     operationType: state.intent === 'buy' ? 'sale' : 'rent',
     zone: typeof state.collectedData.zone === 'string' ? state.collectedData.zone : undefined,
@@ -36,15 +35,4 @@ export async function maybeCreateLeadFromConversation(params: {
   };
 
   return createLead(leadPayload);
-}
-
-function buildConversationSummary(state: ConversationState) {
-  const parts = [
-    `Intent: ${state.intent}`,
-    typeof state.collectedData.zone === 'string' ? `Zona: ${state.collectedData.zone}` : null,
-    typeof state.collectedData.budget === 'number' ? `Presupuesto: ${state.collectedData.budget}` : null,
-    state.selectedPropertyId ? `Property: ${state.selectedPropertyId}` : null,
-  ].filter(Boolean);
-
-  return parts.join(' | ');
 }
