@@ -1,5 +1,7 @@
 import type { ConversationState, PropertySearchInput } from '@reaa/shared';
 import { searchProperties } from '../properties/service.js';
+import { getMissingQuestions } from './stateMachine.js';
+import { shouldOfferProperties } from './rules.js';
 import { formatPropertyReply } from '../properties/presenter.js';
 
 function inferOperationType(intent: ConversationState['intent']): string | undefined {
@@ -20,14 +22,8 @@ function inferSearchInput(state: ConversationState): PropertySearchInput {
 }
 
 export async function maybeBuildPropertySuggestion(state: ConversationState) {
-  if (!['buy', 'rent_residential', 'rent_commercial', 'ask_price'].includes(state.intent)) {
-    return null;
-  }
-
-  const hasZone = typeof state.collectedData.zone === 'string';
-  const hasBudget = typeof state.collectedData.budget === 'string' || typeof state.collectedData.budget === 'number';
-
-  if (!hasZone || !hasBudget) {
+  const missingQuestions = getMissingQuestions(state.intent, state.collectedData);
+  if (!shouldOfferProperties(state.intent, missingQuestions)) {
     return null;
   }
 

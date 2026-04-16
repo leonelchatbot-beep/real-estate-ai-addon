@@ -8,7 +8,9 @@ import {
   updateConversationState,
 } from '../modules/conversations/service.js';
 import { maybeBuildPropertySuggestion } from '../modules/bot/propertyFlow.js';
+import { shouldAutoDerive } from '../modules/bot/rules.js';
 import { detectSelectedPropertyId } from '../modules/bot/selection.js';
+import { evaluationSafe } from '../modules/bot/evaluation.js';
 import { evaluateConversation, evolveConversationState } from '../modules/bot/service.js';
 import { maybeCreateLeadFromConversation } from '../modules/leads/trigger.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
@@ -89,14 +91,23 @@ export async function webchatRoutes(app: FastifyInstance) {
         }
       }
 
+      const shouldDerive = shouldAutoDerive(nextState.intent, evaluationSafe(nextState));
+
       updateConversationState(sessionId, nextState);
       const evaluation = evaluateConversation(nextState);
-      const finalReply = buildNaturalReply({
-        state: nextState,
-        nextQuestion: evaluation.nextQuestion,
-        suggestionReply: suggestion?.reply ?? null,
-        leadCreated: Boolean(leadResult?.leadId),
-      });
+      const finalReply = shouldDerive
+        ? buildNaturalReply({
+            state: nextState,
+            nextQuestion: null,
+            suggestionReply: null,
+            leadCreated: false,
+          })
+        : buildNaturalReply({
+            state: nextState,
+            nextQuestion: evaluation.nextQuestion,
+            suggestionReply: suggestion?.reply ?? null,
+            leadCreated: Boolean(leadResult?.leadId),
+          });
       await appendBotReply(sessionId, finalReply);
 
       return {

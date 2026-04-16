@@ -1,5 +1,6 @@
 import type { ConversationState, RequiredQuestionKey } from '@reaa/shared';
 import { buildIntentDetectedMessage, buildQuestionCopy } from './copy.js';
+import { buildHandoffMessage } from './handoff.js';
 
 export function buildNaturalReply(params: {
   state: ConversationState;
@@ -11,6 +12,12 @@ export function buildNaturalReply(params: {
 
   if (leadCreated) {
     return 'Perfecto. Ya tomé tu consulta sobre esa propiedad y un asesor se va a contactar con vos a la brevedad.';
+  }
+
+  if (state.intent === 'seller' || state.intent === 'recruiting' || state.intent === 'rent_temporary' || state.intent === 'existing_customer') {
+    if (!nextQuestion) {
+      return buildHandoffMessage(state.intent);
+    }
   }
 
   if (suggestionReply) {
