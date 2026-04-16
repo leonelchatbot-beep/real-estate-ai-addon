@@ -1,4 +1,5 @@
-import { INTENT_REQUIRED_QUESTIONS, type ConversationState, type IntentType, type NextQuestionResult } from '@reaa/shared';
+import type { ConversationState, IntentType } from '@reaa/shared';
+import { buildReplyPreview, getNextQuestion, inferTags } from './stateMachine.js';
 
 export function detectIntent(message: string): IntentType {
   const text = message.toLowerCase();
@@ -12,11 +13,17 @@ export function detectIntent(message: string): IntentType {
   return 'unknown';
 }
 
-export function getNextQuestion(state: ConversationState): NextQuestionResult {
-  const required = INTENT_REQUIRED_QUESTIONS[state.intent] ?? [];
-  const missingQuestions = required.filter((question) => !(question in state.collectedData));
+export function evaluateConversation(state: ConversationState) {
+  const next = getNextQuestion(state);
+  const tags = inferTags(state.intent, state.channel);
+  const replyPreview = buildReplyPreview({ ...state, tags });
+
   return {
-    missingQuestions,
-    nextQuestion: missingQuestions[0] ?? null,
+    intent: state.intent,
+    tags,
+    nextQuestion: next.nextQuestion,
+    missingQuestions: next.missingQuestions,
+    replyPreview,
+    qualifiesForLead: next.missingQuestions.length === 0,
   };
 }

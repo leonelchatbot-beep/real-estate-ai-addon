@@ -3,3 +3,6 @@ export * from './intents.js';
 export * from './leads.js';
 export * from './properties.js';
 export * from './bot.js';
+export * from './tags.js';
+export * from './questions.js';
+export * from './contracts.js';
