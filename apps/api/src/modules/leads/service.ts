@@ -1,10 +1,6 @@
 import type { CreateLeadInput } from '@reaa/shared';
+import { createLeadViaApi } from './apiRepository.js';
 
 export async function createLead(input: CreateLeadInput) {
-  return {
-    leadId: crypto.randomUUID(),
-    created: true,
-    payload: input,
-    createdAt: new Date().toISOString(),
-  };
+  return createLeadViaApi(input);
 }
