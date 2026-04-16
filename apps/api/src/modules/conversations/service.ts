@@ -20,6 +20,10 @@ export async function createSession(input: Record<string, unknown>) {
       collectedData: {},
       tags: ['webchat'],
     },
+    followUpStatus: 'none',
+    lastInboundAt: undefined,
+    lastOutboundAt: undefined,
+    nextFollowUpAt: undefined,
     messages: [],
   });
 
@@ -48,6 +52,9 @@ export async function createMessage(input: Record<string, unknown>) {
   updateSession(sessionId, (current) => ({
     ...current,
     updatedAt: new Date().toISOString(),
+    lastInboundAt: message.createdAt,
+    followUpStatus: 'responded',
+    nextFollowUpAt: undefined,
     messages: [...current.messages, message],
   }));
 
@@ -72,6 +79,7 @@ export async function appendBotReply(sessionId: string, content: string) {
   updateSession(sessionId, (current) => ({
     ...current,
     updatedAt: new Date().toISOString(),
+    lastOutboundAt: message.createdAt,
     messages: [...current.messages, message],
   }));
 

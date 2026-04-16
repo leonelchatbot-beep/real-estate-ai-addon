@@ -1,4 +1,4 @@
-import type { ConversationState } from '@reaa/shared';
+import type { ConversationState, FollowUpStatus } from '@reaa/shared';
 
 interface StoredSession {
   sessionId: string;
@@ -11,6 +11,10 @@ interface StoredSession {
   landingUrl?: string;
   userAgent?: string;
   state: ConversationState;
+  followUpStatus: FollowUpStatus;
+  lastInboundAt?: string;
+  lastOutboundAt?: string;
+  nextFollowUpAt?: string;
   messages: Array<{
     id: string;
     direction: 'inbound' | 'outbound';
@@ -28,6 +32,10 @@ export function saveSession(session: StoredSession) {
 
 export function getSession(sessionId: string) {
   return sessions.get(sessionId) ?? null;
+}
+
+export function getAllSessions() {
+  return Array.from(sessions.values());
 }
 
 export function updateSession(sessionId: string, updater: (session: StoredSession) => StoredSession) {
