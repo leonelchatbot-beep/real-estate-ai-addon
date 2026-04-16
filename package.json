@@ -1,0 +1,10 @@
+{
+  "name": "real-estate-ai-addon",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.7.0",
+  "scripts": {
+    "dev:api": "pnpm --filter @reaa/api dev",
+    "build:api": "pnpm --filter @reaa/api build"
+  }
+}
