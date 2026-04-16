@@ -15,6 +15,7 @@ import { evaluateConversation, evolveConversationState } from '../modules/bot/se
 import { maybeCreateLeadFromConversation } from '../modules/leads/trigger.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
 import { buildNaturalReply } from '../modules/bot/replyBuilder.js';
+import { attachNextQuestionToState } from '../modules/bot/nextState.js';
 import { buildWelcomeMessage } from '../modules/bot/copy.js';
 
 export async function webchatRoutes(app: FastifyInstance) {
@@ -93,8 +94,9 @@ export async function webchatRoutes(app: FastifyInstance) {
 
       const shouldDerive = shouldAutoDerive(nextState.intent, evaluationSafe(nextState));
 
-      updateConversationState(sessionId, nextState);
       const evaluation = evaluateConversation(nextState);
+      nextState = attachNextQuestionToState(nextState, evaluation.nextQuestion);
+      updateConversationState(sessionId, nextState);
       const finalReply = shouldDerive
         ? buildNaturalReply({
             state: nextState,

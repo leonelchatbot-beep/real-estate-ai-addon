@@ -1,5 +1,6 @@
 import type { ConversationState, IntentType } from '@reaa/shared';
 import { buildReplyPreview, getNextQuestion, inferTags } from './stateMachine.js';
+import { inferCurrentQuestion } from './context.js';
 import { extractStructuredData } from './extractors.js';
 
 export function detectIntent(message: string): IntentType {
@@ -31,7 +32,8 @@ export function evaluateConversation(state: ConversationState) {
 
 export function evolveConversationState(current: ConversationState, message: string): ConversationState {
   const detectedIntent = current.intent === 'unknown' ? detectIntent(message) : current.intent;
-  const extractedData = extractStructuredData(detectedIntent, message);
+  const currentQuestion = inferCurrentQuestion(current);
+  const extractedData = extractStructuredData(detectedIntent, message, currentQuestion);
 
   return {
     ...current,

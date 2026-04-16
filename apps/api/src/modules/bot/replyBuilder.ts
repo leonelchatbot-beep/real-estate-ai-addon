@@ -1,6 +1,7 @@
 import type { ConversationState, RequiredQuestionKey } from '@reaa/shared';
 import { buildIntentDetectedMessage, buildQuestionCopy } from './copy.js';
 import { buildHandoffMessage } from './handoff.js';
+import { setLastAskedQuestion } from './context.js';
 
 export function buildNaturalReply(params: {
   state: ConversationState;
