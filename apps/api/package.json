@@ -9,6 +9,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@reaa/shared": "workspace:*",
     "fastify": "^5.2.1"
   },
   "devDependencies": {
