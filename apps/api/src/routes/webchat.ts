@@ -12,6 +12,8 @@ import { detectSelectedPropertyId } from '../modules/bot/selection.js';
 import { evaluateConversation, evolveConversationState } from '../modules/bot/service.js';
 import { maybeCreateLeadFromConversation } from '../modules/leads/trigger.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
+import { buildNaturalReply } from '../modules/bot/replyBuilder.js';
+import { buildWelcomeMessage } from '../modules/bot/copy.js';
 
 export async function webchatRoutes(app: FastifyInstance) {
   app.post('/webchat/session', async (request, reply) => {
@@ -25,7 +27,12 @@ export async function webchatRoutes(app: FastifyInstance) {
         userAgent: optionalString(body.userAgent),
       };
 
-      return createSession({ ...payload, channel: 'webchat' });
+      const session = await createSession({ ...payload, channel: 'webchat' });
+      await appendBotReply(session.sessionId, buildWelcomeMessage());
+      return {
+        ...session,
+        welcomeMessage: buildWelcomeMessage(),
+      };
     } catch (error) {
       return reply.code(400).send({ ok: false, error: (error as Error).message });
     }
@@ -84,9 +91,12 @@ export async function webchatRoutes(app: FastifyInstance) {
 
       updateConversationState(sessionId, nextState);
       const evaluation = evaluateConversation(nextState);
-      const finalReply = leadResult?.leadId
-        ? 'Perfecto. Ya tomé tu consulta sobre esa propiedad y un asesor se va a contactar con vos a la brevedad.'
-        : suggestion?.reply ?? evaluation.replyPreview;
+      const finalReply = buildNaturalReply({
+        state: nextState,
+        nextQuestion: evaluation.nextQuestion,
+        suggestionReply: suggestion?.reply ?? null,
+        leadCreated: Boolean(leadResult?.leadId),
+      });
       await appendBotReply(sessionId, finalReply);
 
       return {
