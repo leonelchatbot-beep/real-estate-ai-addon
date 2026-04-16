@@ -1,5 +1,6 @@
 import type { ConversationState, IntentType } from '@reaa/shared';
 import { buildReplyPreview, getNextQuestion, inferTags } from './stateMachine.js';
+import { extractStructuredData } from './extractors.js';
 
 export function detectIntent(message: string): IntentType {
   const text = message.toLowerCase();
@@ -25,5 +26,20 @@ export function evaluateConversation(state: ConversationState) {
     missingQuestions: next.missingQuestions,
     replyPreview,
     qualifiesForLead: next.missingQuestions.length === 0,
+  };
+}
+
+export function evolveConversationState(current: ConversationState, message: string): ConversationState {
+  const detectedIntent = current.intent === 'unknown' ? detectIntent(message) : current.intent;
+  const extractedData = extractStructuredData(detectedIntent, message);
+
+  return {
+    ...current,
+    intent: detectedIntent,
+    collectedData: {
+      ...current.collectedData,
+      ...extractedData,
+    },
+    tags: inferTags(detectedIntent, current.channel),
   };
 }

@@ -1,7 +1,13 @@
 import type { FastifyInstance } from 'fastify';
-import type { ConversationState, WebchatMessageRequest, WebchatSessionRequest } from '@reaa/shared';
-import { createMessage, createSession } from '../modules/conversations/service.js';
-import { detectIntent, evaluateConversation } from '../modules/bot/service.js';
+import type { WebchatMessageRequest, WebchatSessionRequest } from '@reaa/shared';
+import {
+  appendBotReply,
+  createMessage,
+  createSession,
+  readSession,
+  updateConversationState,
+} from '../modules/conversations/service.js';
+import { evaluateConversation, evolveConversationState } from '../modules/bot/service.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
 
 export async function webchatRoutes(app: FastifyInstance) {
@@ -16,7 +22,7 @@ export async function webchatRoutes(app: FastifyInstance) {
         userAgent: optionalString(body.userAgent),
       };
 
-      return createSession(payload as unknown as Record<string, unknown>);
+      return createSession({ ...payload, channel: 'webchat' });
     } catch (error) {
       return reply.code(400).send({ ok: false, error: (error as Error).message });
     }
@@ -27,22 +33,22 @@ export async function webchatRoutes(app: FastifyInstance) {
       const body = assertObject(request.body) as Record<string, unknown>;
       const payload: WebchatMessageRequest = {
         orgId: requireString(body.orgId, 'orgId'),
-        sessionId: optionalString(body.sessionId),
+        sessionId: requireString(body.sessionId, 'sessionId'),
         message: requireString(body.message, 'message'),
         channel: 'webchat',
       };
 
-      const intent = detectIntent(payload.message);
-      const state: ConversationState = {
-        orgId: payload.orgId,
-        channel: payload.channel ?? 'webchat',
-        intent,
-        collectedData: {},
-        tags: [],
-      };
+      const sessionId = payload.sessionId!;
+      const existingSession = readSession(sessionId);
+      if (!existingSession) {
+        return reply.code(404).send({ ok: false, error: 'session not found' });
+      }
 
-      const evaluation = evaluateConversation(state);
-      const stored = await createMessage(payload as unknown as Record<string, unknown>);
+      const stored = await createMessage({ ...payload, sessionId } as unknown as Record<string, unknown>);
+      const nextState = evolveConversationState(existingSession.state, payload.message);
+      updateConversationState(sessionId, nextState);
+      const evaluation = evaluateConversation(nextState);
+      await appendBotReply(sessionId, evaluation.replyPreview);
 
       return {
         ok: true,
@@ -53,6 +59,7 @@ export async function webchatRoutes(app: FastifyInstance) {
         tags: evaluation.tags,
         replyPreview: evaluation.replyPreview,
         qualifiesForLead: evaluation.qualifiesForLead,
+        collectedData: nextState.collectedData,
       };
     } catch (error) {
       return reply.code(400).send({ ok: false, error: (error as Error).message });
