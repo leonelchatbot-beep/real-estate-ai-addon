@@ -7,8 +7,8 @@ export function getGreetingByHour(date = new Date()) {
   return 'Buenas noches';
 }
 
-export function buildWelcomeMessage() {
-  return `${getGreetingByHour()}. Soy Sunny, la asistente virtual de la inmobiliaria. Estoy para ayudarte con una respuesta rápida mientras coordinamos con un asesor del equipo. ¿Con quién tengo el gusto?`;
+export function buildWelcomeMessage(assistantName = 'Sunny', agencyName = 'la inmobiliaria') {
+  return `${getGreetingByHour()}. Soy ${assistantName}, la asistente virtual de ${agencyName}. Estoy para ayudarte con una respuesta rápida mientras coordinamos con un asesor del equipo. ¿Con quién tengo el gusto?`;
 }
 
 export function buildIntentDetectedMessage(intent: IntentType) {

@@ -12,6 +12,7 @@ import { shouldAutoDerive } from '../modules/bot/rules.js';
 import { detectSelectedPropertyId } from '../modules/bot/selection.js';
 import { evaluationSafe } from '../modules/bot/evaluation.js';
 import { evaluateConversation, evolveConversationState } from '../modules/bot/service.js';
+import { getOrgBotConfig } from '../modules/config/store.js';
 import { maybeCreateLeadFromConversation } from '../modules/leads/trigger.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
 import { buildNaturalReply } from '../modules/bot/replyBuilder.js';
@@ -31,10 +32,12 @@ export async function webchatRoutes(app: FastifyInstance) {
       };
 
       const session = await createSession({ ...payload, channel: 'webchat' });
-      await appendBotReply(session.sessionId, buildWelcomeMessage());
+      const botConfig = getOrgBotConfig(payload.orgId);
+      const welcomeMessage = buildWelcomeMessage(botConfig.assistantName, botConfig.agencyName);
+      await appendBotReply(session.sessionId, welcomeMessage);
       return {
         ...session,
-        welcomeMessage: buildWelcomeMessage(),
+        welcomeMessage,
       };
     } catch (error) {
       return reply.code(400).send({ ok: false, error: (error as Error).message });

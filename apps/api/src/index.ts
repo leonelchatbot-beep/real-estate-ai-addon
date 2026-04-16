@@ -6,6 +6,7 @@ import { webchatRoutes } from './routes/webchat.js';
 import { propertyRoutes } from './routes/properties.js';
 import { leadRoutes } from './routes/leads.js';
 import { followUpRoutes } from './routes/followup.js';
+import { configRoutes } from './routes/config.js';
 
 const app = Fastify({ logger: true });
 
@@ -15,6 +16,7 @@ await webchatRoutes(app);
 await propertyRoutes(app);
 await leadRoutes(app);
 await followUpRoutes(app);
+await configRoutes(app);
 
 const start = async () => {
   try {

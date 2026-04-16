@@ -7,3 +7,4 @@ export * from './tags.js';
 export * from './questions.js';
 export * from './contracts.js';
 export * from './followup.js';
+export * from './orgConfig.js';
