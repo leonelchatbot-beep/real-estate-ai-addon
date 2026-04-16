@@ -7,6 +7,7 @@ import {
   readSession,
   updateConversationState,
 } from '../modules/conversations/service.js';
+import { maybeBuildPropertySuggestion } from '../modules/bot/propertyFlow.js';
 import { evaluateConversation, evolveConversationState } from '../modules/bot/service.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
 
@@ -45,10 +46,20 @@ export async function webchatRoutes(app: FastifyInstance) {
       }
 
       const stored = await createMessage({ ...payload, sessionId } as unknown as Record<string, unknown>);
-      const nextState = evolveConversationState(existingSession.state, payload.message);
+      let nextState = evolveConversationState(existingSession.state, payload.message);
+      const suggestion = await maybeBuildPropertySuggestion(nextState);
+
+      if (suggestion) {
+        nextState = {
+          ...nextState,
+          candidatePropertyIds: suggestion.candidatePropertyIds,
+        };
+      }
+
       updateConversationState(sessionId, nextState);
       const evaluation = evaluateConversation(nextState);
-      await appendBotReply(sessionId, evaluation.replyPreview);
+      const finalReply = suggestion?.reply ?? evaluation.replyPreview;
+      await appendBotReply(sessionId, finalReply);
 
       return {
         ok: true,
@@ -57,9 +68,10 @@ export async function webchatRoutes(app: FastifyInstance) {
         nextQuestion: evaluation.nextQuestion,
         missingQuestions: evaluation.missingQuestions,
         tags: evaluation.tags,
-        replyPreview: evaluation.replyPreview,
+        replyPreview: finalReply,
         qualifiesForLead: evaluation.qualifiesForLead,
         collectedData: nextState.collectedData,
+        candidatePropertyIds: nextState.candidatePropertyIds ?? [],
       };
     } catch (error) {
       return reply.code(400).send({ ok: false, error: (error as Error).message });

@@ -6,6 +6,8 @@ export interface ConversationState {
   intent: IntentType;
   collectedData: Record<string, unknown>;
   tags: string[];
+  candidatePropertyIds?: number[];
+  selectedPropertyId?: number | null;
 }
 
 export interface NextQuestionResult {

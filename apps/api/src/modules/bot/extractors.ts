@@ -11,7 +11,11 @@ export function extractStructuredData(intent: IntentType, message: string): Reco
 
   const budgetMatch = message.match(/(\d{2,})(\s?mil|\s?000|\s?usd|\s?u\$s)?/i);
   if (budgetMatch && ['buy', 'rent_residential', 'rent_commercial', 'rent_temporary', 'ask_price'].includes(intent)) {
-    result.budget = budgetMatch[0].trim();
+    const raw = budgetMatch[0].replace(/[^\d]/g, '');
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      result.budget = parsed;
+    }
   }
 
   if (text.includes('caballito')) result.zone = 'Caballito';

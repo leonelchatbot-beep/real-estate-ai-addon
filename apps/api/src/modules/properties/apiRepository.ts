@@ -53,6 +53,7 @@ function matches(input: PropertySearchInput, property: SearchApiProperty) {
   if (input.operationType && property.operation_type !== input.operationType) return false;
   if (input.propType && property.prop_type !== input.propType) return false;
   if (input.currencyId && String(property.currency_id ?? '') !== input.currencyId) return false;
+  if (property.status && !['active', 'published', 'available'].includes(String(property.status).toLowerCase())) return false;
   if (typeof input.budgetMin === 'number' && typeof property.price === 'number' && property.price < input.budgetMin) return false;
   if (typeof input.budgetMax === 'number' && typeof property.price === 'number' && property.price > input.budgetMax) return false;
   if (input.zone) {
