@@ -39,7 +39,12 @@ export function evolveConversationState(current: ConversationState, message: str
     ...extractedData,
   };
 
-  const detectedIntent = current.intent === 'unknown' ? detectIntent(message) : current.intent;
+  const shouldFreezeIntent = currentQuestion === 'name' && typeof nextCollectedData.name === 'string';
+  const detectedIntent = shouldFreezeIntent
+    ? current.intent
+    : current.intent === 'unknown'
+      ? detectIntent(message)
+      : current.intent;
 
   return {
     ...current,

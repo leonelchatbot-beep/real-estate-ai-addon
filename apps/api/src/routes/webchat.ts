@@ -10,6 +10,7 @@ import {
 import { maybeBuildPropertySuggestion } from '../modules/bot/propertyFlow.js';
 import { shouldAutoDerive } from '../modules/bot/rules.js';
 import { detectSelectedPropertyId } from '../modules/bot/selection.js';
+import { forceCaptureNameIfApplicable } from '../modules/bot/nameCapture.js';
 import { evaluationSafe } from '../modules/bot/evaluation.js';
 import { evaluateConversation, evolveConversationState } from '../modules/bot/service.js';
 import { getOrgBotConfig } from '../modules/config/store.js';
@@ -63,6 +64,7 @@ export async function webchatRoutes(app: FastifyInstance) {
 
       const stored = await createMessage({ ...payload, sessionId } as unknown as Record<string, unknown>);
       let nextState = evolveConversationState(existingSession.state, payload.message);
+      nextState = forceCaptureNameIfApplicable(nextState, payload.message);
       const detectedSelection = detectSelectedPropertyId(nextState, payload.message);
       if (detectedSelection) {
         nextState = {
