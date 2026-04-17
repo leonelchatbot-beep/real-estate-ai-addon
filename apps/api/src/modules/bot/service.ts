@@ -31,17 +31,20 @@ export function evaluateConversation(state: ConversationState) {
 }
 
 export function evolveConversationState(current: ConversationState, message: string): ConversationState {
-  const detectedIntent = current.intent === 'unknown' ? detectIntent(message) : current.intent;
   const currentQuestion = inferCurrentQuestion(current);
-  const extractedData = extractStructuredData(detectedIntent, message, currentQuestion);
+  const extractedData = extractStructuredData(current.intent, message, currentQuestion);
+
+  const nextCollectedData = {
+    ...current.collectedData,
+    ...extractedData,
+  };
+
+  const detectedIntent = current.intent === 'unknown' ? detectIntent(message) : current.intent;
 
   return {
     ...current,
     intent: detectedIntent,
-    collectedData: {
-      ...current.collectedData,
-      ...extractedData,
-    },
+    collectedData: nextCollectedData,
     tags: inferTags(detectedIntent, current.channel),
   };
 }

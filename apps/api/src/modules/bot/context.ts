@@ -6,11 +6,18 @@ export function inferCurrentQuestion(state: ConversationState): RequiredQuestion
 }
 
 export function setLastAskedQuestion(state: ConversationState, question: RequiredQuestionKey | null): ConversationState {
+  const nextCollectedData = {
+    ...state.collectedData,
+  } as Record<string, unknown>;
+
+  if (question) {
+    nextCollectedData.__lastAskedQuestion = question;
+  } else {
+    delete nextCollectedData.__lastAskedQuestion;
+  }
+
   return {
     ...state,
-    collectedData: {
-      ...state.collectedData,
-      __lastAskedQuestion: question,
-    },
+    collectedData: nextCollectedData,
   };
 }
