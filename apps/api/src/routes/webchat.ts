@@ -16,6 +16,7 @@ import { getOrgBotConfig } from '../modules/config/store.js';
 import { maybeCreateLeadFromConversation } from '../modules/leads/trigger.js';
 import { assertObject, optionalString, requireString } from '../lib/validators.js';
 import { buildNaturalReply } from '../modules/bot/replyBuilder.js';
+import { summarizeState } from '../modules/bot/debug.js';
 import { attachNextQuestionToState } from '../modules/bot/nextState.js';
 import { buildWelcomeMessage } from '../modules/bot/copy.js';
 
@@ -130,6 +131,7 @@ export async function webchatRoutes(app: FastifyInstance) {
         selectedPropertyId: nextState.selectedPropertyId ?? null,
         leadCreated: nextState.leadCreated ?? false,
         leadId: nextState.leadId ?? null,
+        debugState: summarizeState(nextState),
       };
     } catch (error) {
       return reply.code(400).send({ ok: false, error: (error as Error).message });
