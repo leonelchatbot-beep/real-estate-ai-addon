@@ -98,7 +98,8 @@ export async function webchatRoutes(app: FastifyInstance) {
       const shouldDerive = shouldAutoDerive(nextState.intent, evaluationSafe(nextState));
 
       const evaluation = evaluateConversation(nextState);
-      nextState = attachNextQuestionToState(nextState, evaluation.nextQuestion);
+      const questionForState = nextState.intent === 'unknown' && nextState.collectedData.name ? null : evaluation.nextQuestion;
+      nextState = attachNextQuestionToState(nextState, questionForState);
       updateConversationState(sessionId, nextState);
       const finalReply = shouldDerive
         ? buildNaturalReply({

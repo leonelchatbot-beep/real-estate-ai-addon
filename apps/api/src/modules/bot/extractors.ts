@@ -1,5 +1,6 @@
 import type { IntentType, RequiredQuestionKey } from '@reaa/shared';
 import { parseAffirmative } from './parsers.js';
+import { isGreetingOnly, looksLikeName } from './greetings.js';
 import { normalizeName, normalizePhone, normalizeZone } from './normalizers.js';
 
 function tryExtractByQuestion(question: RequiredQuestionKey | null, message: string): Record<string, unknown> {
@@ -7,6 +8,7 @@ function tryExtractByQuestion(question: RequiredQuestionKey | null, message: str
 
   switch (question) {
     case 'name':
+      if (isGreetingOnly(message) || !looksLikeName(message)) return {};
       return { name: normalizeName(message) };
     case 'phone':
       return { phone: normalizePhone(message) };

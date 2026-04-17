@@ -1,6 +1,7 @@
 import type { ConversationState, RequiredQuestionKey } from '@reaa/shared';
 import { buildIntentDetectedMessage, buildQuestionCopy } from './copy.js';
 import { buildHandoffMessage } from './handoff.js';
+import { buildIntentQuestion, needsIntentQuestion } from './intentQuestion.js';
 import { setLastAskedQuestion } from './context.js';
 
 export function buildNaturalReply(params: {
@@ -23,6 +24,14 @@ export function buildNaturalReply(params: {
 
   if (state.selectedPropertyId && !state.leadCreated && !state.collectedData.phone) {
     return 'Perfecto. Para que un asesor pueda seguir con esa propiedad, ¿me pasás un teléfono de contacto?';
+  }
+
+  if (!state.collectedData.name) {
+    return '¿Con quién tengo el gusto?';
+  }
+
+  if (needsIntentQuestion(state)) {
+    return buildIntentQuestion();
   }
 
   if (suggestionReply) {

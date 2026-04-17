@@ -14,9 +14,9 @@ export function buildWelcomeMessage(assistantName = 'Sunny', agencyName = 'la in
 export function buildIntentDetectedMessage(intent: IntentType) {
   switch (intent) {
     case 'buy':
-      return 'Perfecto, te ayudo con la búsqueda de compra.';
+      return 'Perfecto, te ayudo con la búsqueda para compra.';
     case 'rent_residential':
-      return 'Perfecto, te ayudo con la búsqueda de alquiler.';
+      return 'Perfecto, te ayudo con la búsqueda para alquiler.';
     case 'rent_commercial':
       return 'Perfecto, te ayudo con la búsqueda de local o comercio.';
     case 'rent_temporary':
@@ -26,7 +26,7 @@ export function buildIntentDetectedMessage(intent: IntentType) {
     case 'ask_price':
       return 'Dale, te ayudo con la consulta de precio o información.';
     case 'recruiting':
-      return 'Buenísimo, te cuento un poco y avanzamos con las preguntas para sumarte como asesor.';
+      return 'Buenísimo, avanzamos con la información para sumarte como asesor.';
     default:
       return 'Contame un poco más así te ayudo mejor.';
   }
